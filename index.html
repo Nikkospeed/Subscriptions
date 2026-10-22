@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Abonnementer</title>
+<meta name="description" content="Hold oversikt over abonnementene dine: pris, neste trekk og hva du betaler i måneden og året.">
+<meta name="theme-color" content="#0F2A1D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Abonnement">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E3EFE8; --panel:#F3F9F5; --ink:#132019; --muted:#53675B; --line:#BFD6C8;
+  --door:#0F2A1D; --doorInk:#E6F5EC; --signal:#1E9E62; --signalInk:#FFFFFF; --soft:#D5EADD;
+  --bad:#C8302A; --warn:#B86E05; --off:#8A9A90;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1510; --panel:#13221A; --ink:#E4F3EA; --muted:#94AE9F; --line:#25402F;
+    --door:#06100B; --doorInk:#E4F3EA; --signal:#4FE39A; --signalInk:#06140C; --soft:#173023;
+    --bad:#EC5A52; --warn:#F2A03D; --off:#5D7266;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1510; --panel:#13221A; --ink:#E4F3EA; --muted:#94AE9F; --line:#25402F;
+  --door:#06100B; --doorInk:#E4F3EA; --signal:#4FE39A; --signalInk:#06140C; --soft:#173023;
+  --bad:#EC5A52; --warn:#F2A03D; --off:#5D7266;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased;padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:720px;margin:0 auto}
+header{background:linear-gradient(160deg,var(--door),color-mix(in srgb,var(--door) 70%,var(--signal) 30%));color:var(--doorInk);padding:calc(18px + env(safe-area-inset-top,0px)) 16px 0}
+.hrow{display:flex;align-items:center;gap:12px}
+.hlogo{width:44px;height:44px;flex:none;filter:drop-shadow(0 0 6px rgba(79,227,154,.6))}
+h1,h2,h3,.cond{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;letter-spacing:.01em}
+h1{font-size:2.1rem;line-height:1.05;margin:0}
+header p{margin:6px 0 12px;opacity:.8}
+nav{display:flex;gap:4px}
+nav button{font:inherit;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:1.15rem;background:transparent;color:var(--doorInk);opacity:.7;border:0;padding:8px 16px 10px;border-radius:8px 8px 0 0;cursor:pointer}
+nav button[aria-current="page"]{opacity:1;background:var(--bg);color:var(--ink)}
+main{padding:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+h2{font-size:1.45rem;margin:0 0 10px}
+.muted{color:var(--muted)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.stat.big{grid-column:1/-1;border-color:var(--signal);background:linear-gradient(140deg,var(--panel),color-mix(in srgb,var(--panel) 80%,var(--signal) 20%))}
+.stat .lbl{font-size:.9rem;color:var(--muted)}
+.stat .val{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:1.9rem;line-height:1.1}
+.stat.big .val{font-size:2.8rem;color:var(--signal)}
+.row{display:flex;align-items:center;gap:12px}
+.list{display:grid;gap:8px}
+.item{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer;width:100%;font:inherit;color:inherit;text-align:left}
+.item:active{transform:scale(.99)}
+.badge{flex:none;width:44px;height:44px;border-radius:10px;display:grid;place-items:center;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:1.25rem;color:#06140C}
+.item .mid{flex:1;min-width:0}
+.item .name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .sub{font-size:.9rem;color:var(--muted)}
+.item .right{text-align:right;flex:none}
+.item .price{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:1.3rem}
+.item.paused{opacity:.55}
+.when{font-size:.85rem;font-weight:600}
+.when.soon{color:var(--warn)}
+.when.today{color:var(--bad)}
+.bar{height:10px;border-radius:5px;background:var(--soft);overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:5px}
+.cats{display:grid;gap:10px}
+.cats .top{display:flex;justify-content:space-between;font-size:.95rem;margin-bottom:4px}
+.btn{font:inherit;font-weight:600;border:0;border-radius:10px;padding:11px 16px;background:var(--signal);color:var(--signalInk);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.danger{background:transparent;color:var(--bad);border:1.5px solid var(--bad)}
+.btn.danger.armed{background:var(--bad);color:#fff}
+.btn.sm{padding:8px 12px;font-size:.95rem}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.fab{position:fixed;right:max(16px,calc(50vw - 344px));bottom:calc(20px + env(safe-area-inset-bottom,0px));width:62px;height:62px;border-radius:50%;border:0;background:var(--signal);color:var(--signalInk);font-size:2.2rem;line-height:1;cursor:pointer;box-shadow:0 6px 20px color-mix(in srgb,var(--signal) 45%,transparent);z-index:5}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--signal);outline-offset:1px}
+label.f{display:grid;gap:4px;font-size:.92rem;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.full{grid-column:1/-1}
+.toolbar{display:flex;gap:8px;margin-bottom:10px}
+.toolbar input{flex:1}
+.toolbar select{width:auto}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:.9rem;border:1.5px solid var(--line);background:transparent;color:var(--ink);padding:5px 11px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--signal);background:color-mix(in srgb,var(--signal) 18%,transparent)}
+.empty{text-align:center;padding:26px 10px}
+.empty svg{width:84px;height:84px;opacity:.85;margin-bottom:6px}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center;z-index:10}
+.sheet.open{display:flex}
+.sheet .box{background:var(--panel);width:100%;max-width:720px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));animation:up .2s ease-out}
+@keyframes up{from{transform:translateY(30px);opacity:.4}}
+@media (prefers-reduced-motion: reduce){.sheet .box{animation:none}}
+.sheet h2{display:flex;justify-content:space-between;align-items:center}
+.x{font:inherit;font-size:1.6rem;background:none;border:0;color:var(--muted);cursor:pointer;padding:0 6px}
+.toggle{display:flex;align-items:center;gap:10px;font-size:1rem;color:var(--ink)}
+.toggle input{width:22px;height:22px;accent-color:var(--signal)}
+.note{font-size:.9rem;color:var(--muted);margin:8px 0 0}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:.95rem;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.toast.show{opacity:1}
+.per{font-size:.85rem;color:var(--muted)}
+@media (min-width:600px){.stats{grid-template-columns:1fr 1fr 1fr}.stat.big{grid-column:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="hrow">
+      <svg class="hlogo" viewBox="0 0 48 48" fill="none" stroke="#4FE39A" stroke-linecap="square" color="#4FE39A" aria-hidden="true"><polygon points="24,3 45,24 24,45 3,24" stroke-width="1.6"/><polygon points="24,9 39,24 24,39 9,24" stroke-width="1" opacity=".5"/><path d="M31.05,26.57 A7.5,7.5 0 1 1 29.6,19.0" stroke-width="2.8" stroke-linecap="round"/><polygon points="27.7,20.2 32.0,22.6 31.7,17.6" fill="currentColor" stroke-width="1" stroke-linejoin="round"/><circle cx="24" cy="24" r="1.7" fill="currentColor" stroke="none"/><circle cx="24" cy="45" r="1.5" fill="currentColor" stroke="none"/></svg>
+      <h1>Abonnementer</h1>
+    </div>
+    <p>Hva du betaler, og når det trekkes.</p>
+    <nav aria-label="Sider">
+      <button data-view="oversikt">Oversikt</button>
+      <button data-view="alle">Alle</button>
+      <button data-view="data">Data</button>
+    </nav>
+  </div>
+</header>
+<main class="wrap" id="app"></main>
+<button class="fab" id="fab" aria-label="Legg til abonnement">+</button>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="shTitle">
+  <div class="box">
+    <h2><span id="shTitle">Nytt abonnement</span><button class="x" id="shClose" aria-label="Lukk">×</button></h2>
+    <div id="quick"></div>
+    <form id="form" autocomplete="off">
+      <div class="grid2">
+        <label class="f full"><span>Navn</span><input id="fName" required maxlength="60" placeholder="F.eks. Spotify"></label>
+        <label class="f"><span>Pris (kr)</span><input id="fPrice" type="number" step="any" inputmode="decimal" min="0" required placeholder="0"></label>
+        <label class="f"><span>Betales hver</span><div style="display:flex;gap:6px"><input id="fN" type="number" min="1" max="36" step="1" inputmode="numeric" value="1" style="width:4.2em;flex:none"><select id="fUnit"><option value="m">måned</option><option value="y">år</option><option value="w">uke</option></select></div></label>
+        <label class="f"><span>Neste trekk</span><input id="fDate" type="date" required></label>
+        <label class="f"><span>Kategori</span><select id="fCat"></select></label>
+        <label class="f"><span>Delt på antall personer</span><input id="fShare" type="number" min="1" max="20" step="1" inputmode="numeric" value="1"></label>
+        <label class="f"><span>Bindingstid til (valgfri)</span><input id="fBind" type="date"></label>
+        <label class="f full"><span>Notat (valgfri)</span><input id="fNote" maxlength="120" placeholder="F.eks. betales med Visa, familiekonto"></label>
+        <label class="toggle full"><input type="checkbox" id="fActive" checked> Aktiv (fjern haken for å pause)</label>
+      </div>
+      <p class="note" id="fCalc"></p>
+      <div class="btns" style="margin-top:14px">
+        <button class="btn" type="submit" id="fSave">Lagre</button>
+        <button class="btn ghost" type="button" id="fCancel">Avbryt</button>
+        <button class="btn danger" type="button" id="fDel" style="margin-left:auto">Slett</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const app=$("app");
+const KEY="abonnement-v1";
+const CATS=[
+ ["Strømming","#4FE39A"],["Musikk","#6FCBFF"],["Programvare","#B98CFF"],["Spill","#FF8FB1"],
+ ["Mobil og internett","#F2C14E"],["Trening","#FF9F5A"],["Forsikring","#7FD6C2"],["Avis og nyheter","#C9D46A"],["Annet","#9DB0A5"]];
+const CATCOL=Object.fromEntries(CATS);
+const QUICK=[["Netflix","Strømming"],["Spotify","Musikk"],["YouTube Premium","Strømming"],["Disney+","Strømming"],["HBO Max","Strømming"],["Viaplay","Strømming"],["iCloud+","Programvare"],["Apple Music","Musikk"],["Xbox Game Pass","Spill"],["PlayStation Plus","Spill"],["Mobilabonnement","Mobil og internett"],["Internett","Mobil og internett"],["Treningssenter","Trening"],["Strava","Trening"],["ChatGPT / Claude","Programvare"],["Innboforsikring","Forsikring"],["Bilforsikring","Forsikring"]];
+
+/* ---------- lagring ---------- */
+let subs=[];
+function load(){try{const r=localStorage.getItem(KEY);subs=r?JSON.parse(r):[]}catch(e){subs=[]}if(!Array.isArray(subs))subs=[]}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(subs))}catch(e){toast("Kunne ikke lagre på denne enheten")}}
+function getPref(k,d){try{return localStorage.getItem(KEY+"-"+k)||d}catch(e){return d}}
+function setPref(k,v){try{localStorage.setItem(KEY+"-"+k,v)}catch(e){}}
+
+/* ---------- dato ---------- */
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const today=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
+const dim=(y,m)=>new Date(y,m+1,0).getDate();
+function occ(start,n,unit,k){
+  if(unit==="w"){const d=new Date(start);d.setDate(d.getDate()+7*n*k);return d}
+  const months=unit==="y"?12*n*k:n*k,y=start.getFullYear(),m=start.getMonth()+months;
+  const ty=y+Math.floor(m/12),tm=((m%12)+12)%12;return new Date(ty,tm,Math.min(start.getDate(),dim(ty,tm)));
+}
+function nextDate(s,from){
+  from=from||today();const st=parse(s.date);if(st>=from)return st;
+  let k=1,d;
+  const approx=s.unit==="w"?7*s.n:s.unit==="m"?30.4*s.n:365.25*s.n;
+  k=Math.max(1,Math.floor((from-st)/864e5/approx)-1);
+  while((d=occ(st,s.n,s.unit,k))<from)k++;
+  return d;
+}
+const days=(a,b)=>Math.round((b-a)/864e5);
+const MND=["jan","feb","mar","apr","mai","jun","jul","aug","sep","okt","nov","des"];
+const fmtD=d=>`${d.getDate()}. ${MND[d.getMonth()]}${d.getFullYear()!==new Date().getFullYear()?" "+d.getFullYear():""}`;
+function whenTxt(d){const n=days(today(),d);return n===0?["I dag","today"]:n===1?["I morgen","soon"]:n<=7?[`Om ${n} dager`,"soon"]:[fmtD(d),""]}
+
+/* ---------- penger ---------- */
+const kr=(x,dec)=>{const d=dec??(Math.abs(x)<100&&x%1?2:0);return x.toLocaleString("nb-NO",{minimumFractionDigits:d,maximumFractionDigits:d})+" kr"};
+const myPrice=s=>s.price/(s.share||1);
+const perMonth=s=>myPrice(s)*(s.unit==="w"?52/12/s.n:s.unit==="m"?1/s.n:1/(12*s.n));
+const cycleTxt=s=>{const u={m:["måned","måneder"],y:["år","år"],w:["uke","uker"]}[s.unit];return s.n===1?"per "+u[0]:`hver ${s.n}. ${u[0]}`};
+function sumBetween(a,b){let t=0;for(const s of subs.filter(x=>x.active)){let d=nextDate(s,a);let k=0;while(d<=b&&k<400){t+=myPrice(s);d=nextDate(s,new Date(d.getTime()+864e5));k++}}return t}
+
+/* ---------- UI-hjelpere ---------- */
+const esc=t=>String(t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let tT;function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(tT);tT=setTimeout(()=>e.classList.remove("show"),2200)}
+function badge(s){const c=CATCOL[s.cat]||"#9DB0A5";return `<span class="badge" style="background:${c}" aria-hidden="true">${esc((s.name.trim()[0]||"?").toUpperCase())}</span>`}
+function itemHTML(s,showWhen=true){
+  const d=nextDate(s),[w,cls]=whenTxt(d);
+  const shared=s.share>1?` · din del av ${s.share}`:"";
+  return `<button class="item${s.active?"":" paused"}" data-id="${s.id}">${badge(s)}
+  <div class="mid"><div class="name">${esc(s.name)}</div><div class="sub">${esc(s.cat)}${shared}${s.active?"":" · pauset"}</div></div>
+  <div class="right"><div class="price">${kr(myPrice(s))}</div><div class="per">${cycleTxt(s)}</div>${showWhen&&s.active?`<div class="when ${cls}">${w}</div>`:""}</div></button>`;
+}
+const EMPTY=`<div class="empty"><svg viewBox="0 0 48 48" fill="none" stroke="var(--signal)" color="var(--signal)"><polygon points="24,3 45,24 24,45 3,24" stroke-width="1.3"/><polygon points="24,9 39,24 24,39 9,24" stroke-width=".8" opacity=".5"/><path d="M31.05,26.57 A7.5,7.5 0 1 1 29.6,19.0" stroke-width="2.4" stroke-linecap="round"/><polygon points="27.7,20.2 32.0,22.6 31.7,17.6" fill="currentColor" stroke-width="1"/></svg>
+<h2 style="margin:0 0 6px">Ingen abonnementer ennå</h2><p class="muted" style="margin:0 0 14px">Legg til det første med + nede til høyre.</p><button class="btn" onclick="openSheet()">Legg til abonnement</button></div>`;
+function bindItems(){app.querySelectorAll(".item[data-id]").forEach(b=>b.onclick=()=>openSheet(b.dataset.id))}
+
+/* ---------- visninger ---------- */
+function oversikt(){
+  const act=subs.filter(s=>s.active);
+  if(!subs.length){app.innerHTML=`<div class="card">${EMPTY}</div>`;return}
+  const m=act.reduce((a,s)=>a+perMonth(s),0),t=today(),in30=new Date(t);in30.setDate(in30.getDate()+30);
+  const next30=sumBetween(t,in30);
+  const up=act.map(s=>({s,d:nextDate(s)})).filter(x=>x.d<=in30).sort((a,b)=>a.d-b.d);
+  const byCat={};act.forEach(s=>byCat[s.cat]=(byCat[s.cat]||0)+perMonth(s));
+  const cats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]),max=cats.length?cats[0][1]:1;
+  const binds=subs.filter(s=>s.bind&&parse(s.bind)>=t).sort((a,b)=>parse(a.bind)-parse(b.bind));
+  app.innerHTML=`
+  <div class="stats" style="margin-bottom:14px">
+    <div class="stat big"><div class="lbl">Per måned</div><div class="val">${kr(m,0)}</div></div>
+    <div class="stat"><div class="lbl">Per år</div><div class="val">${kr(m*12,0)}</div></div>
+    <div class="stat"><div class="lbl">Neste 30 dager</div><div class="val">${kr(next30,0)}</div></div>
+  </div>
+  <div class="card"><h2>Kommende trekk</h2>
+    ${up.length?`<div class="list">${up.map(x=>itemHTML(x.s)).join("")}</div>`:`<p class="muted" style="margin:0">Ingen trekk de neste 30 dagene.</p>`}
+  </div>
+  ${cats.length?`<div class="card"><h2>Per kategori</h2><div class="cats">${cats.map(([c,v])=>`<div><div class="top"><span>${esc(c)}</span><span class="cond">${kr(v,0)} / mnd</span></div><div class="bar"><i style="width:${Math.max(3,v/max*100)}%;background:${CATCOL[c]||"#9DB0A5"}"></i></div></div>`).join("")}</div></div>`:""}
+  ${binds.length?`<div class="card"><h2>Bindingstid</h2><div class="list">${binds.map(s=>`<div class="row" style="justify-content:space-between"><span>${esc(s.name)}</span><span class="muted">til ${fmtD(parse(s.bind))}</span></div>`).join("")}</div></div>`:""}
+  <p class="muted" style="text-align:center;font-size:.9rem">${act.length} aktive${subs.length>act.length?` · ${subs.length-act.length} pauset`:""} · Priser er din andel</p>`;
+  bindItems();
+}
+function alle(){
+  if(!subs.length){app.innerHTML=`<div class="card">${EMPTY}</div>`;return}
+  const sort=getPref("sort","next");
+  app.innerHTML=`<div class="card">
+    <div class="toolbar"><input type="search" id="q" placeholder="Søk" aria-label="Søk i abonnementer">
+    <select id="sort" aria-label="Sorter"><option value="next">Neste trekk</option><option value="month">Dyrest per mnd</option><option value="name">Navn</option></select></div>
+    <div class="chips" id="cf" style="margin-bottom:12px"></div>
+    <div class="list" id="L"></div><p class="muted" id="tot" style="margin:12px 0 0;text-align:right"></p></div>`;
+  $("sort").value=sort;
+  let cat="";
+  const used=[...new Set(subs.map(s=>s.cat))];
+  $("cf").innerHTML=[`<button class="chip" data-c="" aria-pressed="true">Alle</button>`,...CATS.filter(c=>used.includes(c[0])).map(c=>`<button class="chip" data-c="${esc(c[0])}" aria-pressed="false">${esc(c[0])}</button>`)].join("");
+  const draw=()=>{
+    const q=$("q").value.trim().toLowerCase(),so=$("sort").value;
+    let rs=subs.filter(s=>(!cat||s.cat===cat)&&(!q||(s.name+" "+s.cat+" "+(s.note||"")).toLowerCase().includes(q)));
+    rs.sort((a,b)=>(b.active-a.active)||(so==="name"?a.name.localeCompare(b.name,"nb"):so==="month"?perMonth(b)-perMonth(a):nextDate(a)-nextDate(b)));
+    $("L").innerHTML=rs.length?rs.map(s=>itemHTML(s)).join(""):`<p class="muted">Ingen treff.</p>`;
+    const m=rs.filter(s=>s.active).reduce((a,s)=>a+perMonth(s),0);
+    $("tot").textContent=`${rs.length} stk · ${kr(m,0)} per måned`;bindItems();
+  };
+  $("q").oninput=draw;$("sort").onchange=e=>{setPref("sort",e.target.value);draw()};
+  $("cf").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{cat=b.dataset.c;$("cf").querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b));draw()});
+  draw();
+}
+function data(){
+  app.innerHTML=`
+  <div class="card"><h2>Påminnelser i kalenderen</h2>
+    <p>Last ned en kalenderfil med alle aktive abonnementer. Hvert trekk gjentar seg automatisk og får varsel dagen før. På iPhone: åpne fila og trykk «Legg til alle».</p>
+    <button class="btn" id="ics">Last ned kalenderfil (.ics)</button></div>
+  <div class="card"><h2>Sikkerhetskopi</h2>
+    <p>Abonnementene lagres bare i nettleseren på denne enheten. Ta en kopi av og til, og bruk den for å flytte til en annen enhet.</p>
+    <div class="btns"><button class="btn" id="exp">Last ned kopi</button><button class="btn ghost" id="impB">Hent fra kopi</button><input type="file" id="imp" accept="application/json,.json" hidden></div></div>
+  <div class="card"><h2>Utseende</h2>
+    <div class="chips" id="th"><button class="chip" data-t="">Følg telefonen</button><button class="chip" data-t="light">Lyst</button><button class="chip" data-t="dark">Mørkt</button></div></div>
+  <div class="card"><h2>Slett alt</h2><p class="muted">Fjerner alle abonnementer fra denne enheten. Trykk to ganger for å bekrefte.</p><button class="btn danger" id="wipe">Slett alle</button></div>`;
+  $("ics").onclick=exportICS;
+  $("exp").onclick=()=>download(`abonnementer-${iso(today())}.json`,JSON.stringify({app:"abonnementer",v:1,subs},null,1),"application/json");
+  $("impB").onclick=()=>$("imp").click();
+  $("imp").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result),list=Array.isArray(j)?j:j.subs;if(!Array.isArray(list))throw 0;
+    const clean=list.filter(s=>s&&s.name&&isFinite(s.price)&&/^\d{4}-\d{2}-\d{2}$/.test(s.date)).map(norm);
+    const ids=new Set(subs.map(s=>s.id));let add=0;clean.forEach(s=>{if(ids.has(s.id)){subs[subs.findIndex(x=>x.id===s.id)]=s}else{subs.push(s);add++}});
+    save();toast(`Hentet ${clean.length} abonnementer`);}catch(err){toast("Fila kunne ikke leses")}};r.readAsText(f)};
+  const cur=getPref("theme","");
+  $("th").querySelectorAll(".chip").forEach(b=>{b.setAttribute("aria-pressed",b.dataset.t===cur);b.onclick=()=>{setPref("theme",b.dataset.t);applyTheme();data()}});
+  let armed=false;$("wipe").onclick=e=>{if(!subs.length){toast("Ingen å slette");return}if(!armed){armed=true;e.target.classList.add("armed");e.target.textContent="Trykk igjen for å slette alt";setTimeout(()=>{armed=false;if(e.target.isConnected){e.target.classList.remove("armed");e.target.textContent="Slett alle"}},3500);return}subs=[];save();toast("Alt er slettet");data()};
+}
+function norm(s){return {id:String(s.id||uid()),name:String(s.name).slice(0,60),price:Math.max(0,+s.price),n:Math.max(1,Math.min(36,parseInt(s.n)||1)),unit:["m","y","w"].includes(s.unit)?s.unit:"m",date:s.date,cat:CATCOL[s.cat]?s.cat:"Annet",share:Math.max(1,parseInt(s.share)||1),bind:/^\d{4}-\d{2}-\d{2}$/.test(s.bind||"")?s.bind:"",note:String(s.note||"").slice(0,120),active:s.active!==false}}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function download(name,text,type){const b=new Blob([text],{type});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
+function exportICS(){
+  const act=subs.filter(s=>s.active);if(!act.length){toast("Ingen aktive abonnementer");return}
+  const e=t=>String(t).replace(/[\\;,]/g,c=>"\\"+c).replace(/\n/g,"\\n");
+  const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+  const L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Abonnementer//NO","CALSCALE:GREGORIAN","X-WR-CALNAME:Abonnementer"];
+  act.forEach(s=>{const d=nextDate(s),dd=iso(d).replace(/-/g,""),nx=new Date(d);nx.setDate(nx.getDate()+1);
+    const freq={m:"MONTHLY",y:"YEARLY",w:"WEEKLY"}[s.unit];
+    L.push("BEGIN:VEVENT",`UID:${s.id}@abonnementer`,`DTSTAMP:${stamp}`,`DTSTART;VALUE=DATE:${dd}`,`DTEND;VALUE=DATE:${iso(nx).replace(/-/g,"")}`,
+      `RRULE:FREQ=${freq};INTERVAL=${s.n}`,`SUMMARY:${e(s.name)} – ${e(kr(myPrice(s)))}`,`DESCRIPTION:${e(s.cat+(s.note?" · "+s.note:""))}`,
+      "TRANSP:TRANSPARENT","BEGIN:VALARM","ACTION:DISPLAY",`DESCRIPTION:${e(s.name)} trekkes i morgen`,"TRIGGER:-PT12H","END:VALARM","END:VEVENT")});
+  L.push("END:VCALENDAR");download("abonnementer.ics",L.join("\r\n"),"text/calendar");
+}
+
+/* ---------- skjema ---------- */
+let editId=null,delArmed=false;
+$("fCat").innerHTML=CATS.map(c=>`<option>${c[0]}</option>`).join("");
+$("quick").innerHTML=`<p class="muted" style="margin:0 0 6px;font-size:.9rem">Hurtigvalg</p><div class="chips" style="margin-bottom:14px">${QUICK.map(q=>`<button type="button" class="chip" data-n="${esc(q[0])}" data-c="${esc(q[1])}">${esc(q[0])}</button>`).join("")}</div>`;
+$("quick").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{$("fName").value=b.dataset.n;$("fCat").value=b.dataset.c;$("fPrice").focus();calcNote()});
+function openSheet(id){
+  editId=id||null;delArmed=false;const s=id?subs.find(x=>x.id===id):null;
+  $("shTitle").textContent=s?"Endre abonnement":"Nytt abonnement";$("quick").style.display=s?"none":"";
+  $("fName").value=s?s.name:"";$("fPrice").value=s?s.price:"";$("fN").value=s?s.n:1;$("fUnit").value=s?s.unit:"m";
+  $("fDate").value=s?iso(nextDate(s)):iso(today());$("fCat").value=s?s.cat:"Strømming";$("fShare").value=s?s.share:1;
+  $("fBind").value=s?s.bind:"";$("fNote").value=s?s.note:"";$("fActive").checked=s?s.active:true;
+  $("fDel").style.display=s?"":"none";$("fDel").classList.remove("armed");$("fDel").textContent="Slett";
+  $("sheet").classList.add("open");document.body.style.overflow="hidden";calcNote();
+  if(!s&&matchMedia("(hover:hover)").matches)setTimeout(()=>$("fName").focus(),50);
+}
+window.openSheet=openSheet;
+function closeSheet(){$("sheet").classList.remove("open");document.body.style.overflow=""}
+function calcNote(){
+  const p=parseFloat(String($("fPrice").value).replace(",",".")),n=parseInt($("fN").value)||1,u=$("fUnit").value,sh=parseInt($("fShare").value)||1;
+  if(!isFinite(p)||p<=0){$("fCalc").textContent="";return}
+  const s={price:p,n,unit:u,share:sh},m=perMonth(s);
+  $("fCalc").textContent=`Tilsvarer ${kr(m)} per måned og ${kr(m*12,0)} per år`+(sh>1?` (din del: ${kr(p/sh)} per trekk).`:".");
+}
+["fPrice","fN","fUnit","fShare"].forEach(id=>$(id).addEventListener("input",calcNote));
+$("fUnit").addEventListener("change",calcNote);
+$("form").onsubmit=e=>{
+  e.preventDefault();
+  const price=parseFloat(String($("fPrice").value).replace(",","."));
+  if(!$("fName").value.trim()||!isFinite(price)||!$("fDate").value){toast("Fyll inn navn, pris og dato");return}
+  const s=norm({id:editId||uid(),name:$("fName").value.trim(),price,n:$("fN").value,unit:$("fUnit").value,date:$("fDate").value,cat:$("fCat").value,share:$("fShare").value,bind:$("fBind").value,note:$("fNote").value.trim(),active:$("fActive").checked});
+  if(editId)subs[subs.findIndex(x=>x.id===editId)]=s;else subs.push(s);
+  save();closeSheet();toast(editId?"Endret":"Lagt til");route();
+};
+$("fDel").onclick=()=>{
+  if(!delArmed){delArmed=true;$("fDel").classList.add("armed");$("fDel").textContent="Trykk igjen for å slette";return}
+  subs=subs.filter(x=>x.id!==editId);save();closeSheet();toast("Slettet");route();
+};
+$("fCancel").onclick=closeSheet;$("shClose").onclick=closeSheet;
+$("sheet").addEventListener("click",e=>{if(e.target===$("sheet"))closeSheet()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("sheet").classList.contains("open"))closeSheet()});
+$("fab").onclick=()=>openSheet();
+
+/* ---------- ruting og tema ---------- */
+function applyTheme(){const t=getPref("theme","");if(t)document.documentElement.setAttribute("data-theme",t);else document.documentElement.removeAttribute("data-theme")}
+function route(){
+  const v=(location.hash||"#oversikt").slice(1);
+  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-current",b.dataset.view===v?"page":"false"));
+  $("fab").style.display=v==="data"?"none":"";
+  if(v==="alle")alle();else if(v==="data")data();else oversikt();
+}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{location.hash=b.dataset.view});
+window.addEventListener("hashchange",route);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&!$("sheet").classList.contains("open"))route()});
+applyTheme();load();route();
+</script>
+</body>
+</html>
